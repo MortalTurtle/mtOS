@@ -1,60 +1,70 @@
-TARGET = i686-elf
-CROSSCCDIR = /home/mturtle/opt/cross/bin
-OSNAME = mtOS
+SYSTEM_HEADER_PROJECTS := libc kernel
+PROJECTS := libc kernel
 
-GPPPARAMS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
-ASPARAMS =
-LDPARAMS = -ffreestanding -O2 -nostdlib -lgcc
-GPP = $(CROSSCCDIR)/$(TARGET)-g++
-AS = $(CROSSCCDIR)/$(TARGET)-as
+DEFAULT_HOST=i686-elf
+MAKE ?= make
+HOST ?= $(DEFAULT_HOST)
+ifeq ($(findstring i686,$(HOST)),i686)
+    HOSTARCH = i386
+else ifeq ($(findstring i586,$(HOST)),i586)
+    HOSTARCH = i386
+else ifeq ($(findstring i486,$(HOST)),i486)
+    HOSTARCH = i386
+else ifeq ($(findstring i386,$(HOST)),i386)
+    HOSTARCH = i386
+else
+    HOSTARCH = $(firstword $(subst -, ,$(HOST)))
+endif
 
-BUILDDIR = build
-ISODIR = $(BUILDDIR)/isodir
-BINARYNAME = $(OSNAME).bin
-BINARY = $(BUILDDIR)/$(BINARYNAME)
-objects = $(addprefix $(BUILDDIR)/, boot.o kernel.o )
+export HOST
+export HOSTARCH
 
-$(BUILDDIR):
-	mkdir -p $@
+export AR := $(HOST)-ar
+export AS := $(HOST)-as
+export CC := $(HOST)-g++
 
-$(BUILDDIR)/%.o: %.cpp | $(BUILDDIR)
-	$(GPP) -c $< $(GPPPARAMS) -o $@
+export PREFIX := /usr
+export EXEC_PREFIX := $(PREFIX)
+export BOOTDIR := /boot
+export LIBDIR := $(EXEC_PREFIX)/lib
+export INCLUDEDIR := $(PREFIX)/include
 
-$(BUILDDIR)/%.o: %.s | $(BUILDDIR)
-	$(AS) $< $(ASPARAMS) -o $@
+export CFLAGS := -O2 -g
+export CPPFLAGS := 
 
-$(BINARY): linker.ld $(objects) | $(BUILDDIR)
-	$(CROSSCCDIR)/$(TARGET)-g++ -T $< -o $@ $(LDPARAMS) $(objects)
+SYSROOT := $(abspath sysroot)
+ISODIR = isodir
+export CC := $(CC) --sysroot=$(SYSROOT)
 
-health-check: $(BINARY)
-	@if grub-file --is-x86-multiboot $(BINARY); then \
-		echo "multiboot confirmed"; \
-	else \
-		echo "the file is not multiboot"; \
-		exit 1; \
-	fi
+ifneq (,$(findstring -elf,$(HOST)))
+  export CC := $(CC) -isystem=$(INCLUDEDIR)
+endif
 
-build-bin: $(BINARY)
+.PHONY: all headers build clean
 
-build-cdrom: health-check
-	mkdir -p $(ISODIR)/boot/grub && \
-	cp $(BINARY) $(ISODIR)/boot/$(BINARYNAME) && \
-	cp grub.cfg $(ISODIR)/boot/grub/grub.cfg && \
-	grub-mkrescue -o $(BUILDDIR)/$(OSNAME).iso $(ISODIR) && \
-	rm -rf $(ISODIR)
+all: build
+
+headers:
+	@mkdir -p $(SYSROOT)
+	@for project in $(SYSTEM_HEADER_PROJECTS); do \
+		$(MAKE) -C $$project install-headers DESTDIR="$(SYSROOT)" || exit 1; \
+	done
+
+build: headers
+	@for project in $(PROJECTS); do \
+		$(MAKE) -C $$project install DESTDIR="$(SYSROOT)" || exit 1; \
+	done
 
 clean:
-	rm -rf $(BUILDDIR)
+	@for project in $(PROJECTS); do \
+		$(MAKE) -C $$project clean || true; \
+	done
+	@rm -rf $(SYSROOT)
+	@rm -rf $(ISODIR)
+	@rm -f *.iso
 
-emulate: build-cdrom
-	@(\
-	qemu-system-i386 -cdrom $(BUILDDIR)/$(OSNAME).iso -vnc :0,share=allow-exclusive -display none & \
-	QEMU_PID=$$!; \
-	echo "QEMU started with PID $$QEMU_PID"; \
-	sleep 1; \
-	vncviewer localhost:5900; \
-	echo "Stopping QEMU..."; \
-	kill $$QEMU_PID \
-	)
-
-.PHONY: build-bin clean
+iso: build
+	@mkdir -p isodir/boot/grub
+	@cp $(SYSROOT)/boot/mtos.bin $(ISODIR)/boot/mtos.bin
+	@echo -e 'menuentry "mtos" {\n    multiboot /boot/mtos.bin\n}' > $(ISODIR)/boot/grub/grub.cfg
+	@grub-mkrescue -o mtos.iso isodir
