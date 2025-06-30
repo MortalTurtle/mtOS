@@ -16,16 +16,34 @@ stack_bottom:
     .skip 16384 # 16 KiB
 stack_top:
 
+.extern __stack_chk_guard
+
 .section .text
 .global _start
 .type _start, @function
 _start:
+    #save multiboot data
+    mov %ebx, %esi   # ESI = multiboot_info pointer
+    mov %eax, %edi   # EDI = magic number
     mov $stack_top, %esp
+    # init canary for stack smashing protection
+    call init_stack_check_guard
+
     call _init
+
     call kernel_main
     call _fini
     cli
 1:  hlt
     jmp 1b
+
+init_stack_check_guard:
+    rdtsc               # EDX:EAX = TSC
+    xor %ecx, %eax
+    xor %esp, %eax
+    xor 4(%esi), %eax    
+    mov $__stack_chk_guard, %ecx
+    mov %eax, (%ecx)
+    ret
 
 .size _start, . - _start

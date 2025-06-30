@@ -14,9 +14,16 @@ SECTIONS
         *(.rodata)
     }
 
+    .data BLOCK(4K) : ALIGN(4K)
+    {
+        __stack_chk_guard = .;
+        LONG(0xDEADBEEF);  /* default value, changed in _start */
+        *(.data)
+    }
+
     .bss BLOCK(4K) : ALIGN(4K)
     {
         *(COMMON)
         *(.bss)
-    }
+    }   
 }

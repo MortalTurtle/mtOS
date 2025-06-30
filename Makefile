@@ -19,6 +19,10 @@ endif
 export HOST
 export HOSTARCH
 
+export OSNAME := mtos
+export OSBIN := $(OSNAME).bin
+export ISONAME := $(OSNAME).iso
+
 export AR := $(HOST)-ar
 export AS := $(HOST)-as
 export CC := $(HOST)-g++
@@ -65,6 +69,17 @@ clean:
 
 iso: build
 	@mkdir -p isodir/boot/grub
-	@cp $(SYSROOT)/boot/mtos.bin $(ISODIR)/boot/mtos.bin
-	@echo -e 'menuentry "mtos" {\n    multiboot /boot/mtos.bin\n}' > $(ISODIR)/boot/grub/grub.cfg
-	@grub-mkrescue -o mtos.iso isodir
+	@cp $(SYSROOT)$(BOOTDIR)/$(OSBIN) $(ISODIR)/boot/$(OSBIN)
+	@echo -e 'menuentry "$(OSNAME)" {\n    multiboot $(BOOTDIR)/$(OSBIN)\n}' > $(ISODIR)$(BOOTDIR)/grub/grub.cfg
+	@grub-mkrescue -o $(ISONAME) isodir
+
+qemu: iso
+	@(\
+	qemu-system-i386 -cdrom $(ISONAME) -vnc :0,share=allow-exclusive -display none & \
+	QEMU_PID=$$!; \
+	echo "QEMU started with PID $$QEMU_PID"; \
+	sleep 1; \
+	vncviewer localhost:5900; \
+	echo "Stopping QEMU..."; \
+	kill $$QEMU_PID \
+	)

@@ -10,7 +10,7 @@ BOOTDIR?=$(EXEC_PREFIX)/boot
 INCLUDEDIR?=$(PREFIX)/include
 
 CFLAGS:=$(CFLAGS) -ffreestanding -Wall -Wextra
-CPPFLAGS:=$(CPPFLAGS) -D__is_kernel -Iinclude
+CPPFLAGS:=$(CPPFLAGS) -D__is_kernel -Iinclude -fstack-protector-strong
 LDFLAGS:=$(LDFLAGS)
 LIBS:=$(LIBS) -nostdlib -lk -lgcc
 
@@ -43,14 +43,17 @@ $(LIBS) \
 $(ARCHDIR)/crtend.o \
 $(ARCHDIR)/crtn.o \
 
+OSNAME?=mtos
+OSBIN?=$(OSNAME).bin
+
 .PHONY: all clean install install-headers install-kernel
-.SUFFIXES: .o .c .S
+.SUFFIXES: .o .cpp .S
 
-all: mtos.bin
+all: $(OSBIN)
 
-mtos.bin: $(OBJS) $(ARCHDIR)/linker.ld
+$(OSBIN): $(OBJS) $(ARCHDIR)/linker.ld
 	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LINK_LIST)
-	grub-file --is-x86-multiboot mtos.bin
+	grub-file --is-x86-multiboot $(OSBIN)
 
 $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
@@ -62,7 +65,7 @@ $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
 clean:
-	rm -f mtos.bin
+	rm -f $(OSBIN)
 	rm -f $(OBJS) *.o */*.o */*/*.o
 	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
 
@@ -72,8 +75,8 @@ install-headers:
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDEDIR)/.
 
-install-kernel: mtos.bin
+install-kernel: $(OSBIN)
 	mkdir -p $(DESTDIR)$(BOOTDIR)
-	cp mtos.bin $(DESTDIR)$(BOOTDIR)
+	cp $(OSBIN) $(DESTDIR)$(BOOTDIR)
 
 -include $(OBJS:.o=.d)

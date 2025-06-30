@@ -10,9 +10,9 @@ INCLUDEDIR?=$(PREFIX)/include
 LIBDIR?=$(EXEC_PREFIX)/lib
 
 CFLAGS:=$(CFLAGS) -ffreestanding -Wall -Wextra
-CPPFLAGS:=$(CPPFLAGS) -D__is_libc -Iinclude
+CPPFLAGS:=$(CPPFLAGS) -D__is_libc -Iinclude -fstack-protector-strong
 LIBK_CFLAGS:=$(CFLAGS)
-LIBK_CPPFLAGS:=$(CPPFLAGS) -D__is_libk
+LIBK_CPPFLAGS:=$(CPPFLAGS) -D__is_libk -fstack-protector-strong
 
 ARCHDIR=arch/$(HOSTARCH)
 
@@ -34,6 +34,7 @@ string/memcpy.o \
 string/memmove.o \
 string/memset.o \
 string/strlen.o \
+ssp/ssp.o \
 
 HOSTEDOBJS=\
 $(ARCH_HOSTEDOBJS) \
