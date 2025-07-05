@@ -30,7 +30,12 @@ _start:
     call init_stack_check_guard
 
     call _init
-
+    cli
+    call load_gdt
+    call IDT_configure
+    call load_idt
+    call PIC_configure
+    sti
     call kernel_main
     call _fini
     cli
@@ -44,6 +49,26 @@ init_stack_check_guard:
     xor 4(%esi), %eax    
     mov $__stack_chk_guard, %ecx
     mov %eax, (%ecx)
+    ret
+
+.extern gdt_ptr
+load_gdt:
+    lgdt [gdt_ptr]
+    # Refresh code segment with far jump
+    ljmp $0x08, $.reload_cs
+.reload_cs:
+    # Refresh data segments
+    mov $0x10, %ax # Kernel data segment selector
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    mov %ax, %ss
+    ret
+
+.extern idt_ptr
+load_idt:
+    lidt [idt_ptr]
     ret
 
 .size _start, . - _start

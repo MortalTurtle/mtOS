@@ -2,19 +2,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#if UINT32_MAX == UINTPTR_MAX
-#define STACK_CHK_GUARD 0xe2dee396
-#else
-#define STACK_CHK_GUARD 0x595e9fdb94fda766
-#endif
+extern "C" uintptr_t __stack_chk_guard;
 
-extern "C" uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
-
+extern "C"
 __attribute__((noreturn))
-extern "C" void __stack_chk_fail(void) {
+void __stack_chk_fail(void) {
   #if __STDC_HOSTED__
     abort();
-  #elif __is_kernel
+  #endif
+  #if defined(__is_kernel)
     panic("Stack smashing detected");
   #endif
 }
