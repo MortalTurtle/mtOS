@@ -36,6 +36,7 @@ _start:
     call load_idt
     call PIC_configure
     sti
+    call enable_paging
     call kernel_main
     call _fini
     cli
@@ -68,7 +69,18 @@ load_gdt:
 
 .extern idt_ptr
 load_idt:
-    lidt [idt_ptr]
+  lidt [idt_ptr]
+  ret
+
+.extern page_directory
+.extern init_paging
+enable_paging:
+    call init_paging
+    mov $page_directory, %eax
+    mov %eax, %cr3
+    mov %cr0, %eax
+    or $0x80010000, %eax
+    mov %eax, %cr0
     ret
 
 .size _start, . - _start

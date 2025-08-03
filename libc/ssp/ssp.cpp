@@ -1,6 +1,9 @@
 #include <ssp.h>
 #include <stdint.h>
 #include <stdlib.h>
+#ifdef __is_kernel
+#include <kernel/kernel.h>
+#endif
 
 extern "C" uintptr_t __stack_chk_guard;
 
@@ -10,7 +13,7 @@ void __stack_chk_fail(void) {
   #if __STDC_HOSTED__
     abort();
   #endif
-  #if defined(__is_kernel)
+  #ifdef __is_kernel
     panic("Stack smashing detected");
   #endif
 }

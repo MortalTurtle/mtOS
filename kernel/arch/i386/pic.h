@@ -13,3 +13,6 @@ void IRQ_clear_mask(uint8_t IRQ_line);
 
 uint16_t PIC_read_isr_reg();
 uint16_t PIC_read_irq_reg();
+
+extern "C"
+void PIC_configure();
