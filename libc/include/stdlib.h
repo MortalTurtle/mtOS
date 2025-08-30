@@ -1,8 +1,8 @@
 #pragma once
-#include <sys/cdefs.h>
-
+#include "stddef.h"
 extern "C" {
 
-__attribute__((__noreturn__))
-void abort(void);
+__attribute__((__noreturn__)) void abort(void);
+
+void* malloc(size_t size);
 }

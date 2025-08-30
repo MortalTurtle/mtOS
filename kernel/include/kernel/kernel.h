@@ -1,5 +1,5 @@
-#pragma once 
+#pragma once
 
-extern "C"
-__attribute__((noreturn))
-void panic(char* msg);
+extern "C" __attribute__((noreturn)) void panic(char* msg);
+
+void system_setup();

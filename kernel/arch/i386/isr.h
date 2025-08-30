@@ -1,15 +1,9 @@
 #pragma once
 #include <stdint.h>
-
-struct Registers {
-  uint32_t ds;
-  uint32_t edi, esi, ebp, kern_esp, ebx, edx, ecx, eax;
-  uint32_t interrupt, error;
-  uint32_t eip, cs, eflags, esp, ss;
-} __attribute__((packed));
+#include "interrupts.h"
 
 struct ISRTable {
-  using isr = void(*)(Registers*);
+  using isr = void (*)(Registers*);
   isr isr_table[256];
   bool valid[256] = {0};
   static ISRTable instance;
@@ -18,12 +12,15 @@ struct ISRTable {
     valid[cnt++] = true;
   }
   void call(int interrupt, Registers* regs) {
-    if (valid[interrupt])
-      isr_table[interrupt](regs);
+    if (valid[interrupt]) isr_table[interrupt](regs);
   }
-  private:
-    int cnt = 0;
-    ISRTable(){}
-    ISRTable(ISRTable&&) = delete;
-    ISRTable(const ISRTable&) = delete;
+
+ private:
+  int cnt = 0;
+  ISRTable() {
+    isr_table[14] = handle_page_fault;
+    valid[14] = true;
+  }
+  ISRTable(ISRTable&&) = delete;
+  ISRTable(const ISRTable&) = delete;
 };

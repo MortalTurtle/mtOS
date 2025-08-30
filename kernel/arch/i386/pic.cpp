@@ -1,6 +1,7 @@
 #include "pic.h"
 #include <stdint.h>
 #include "inline_asm.h"
+#include "interrupts.h"
 #include "isr.h"
 #include "kernel/keyboard.h"
 #include "stdio.h"

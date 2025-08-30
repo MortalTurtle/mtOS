@@ -1,0 +1,8 @@
+CompileFlags:
+  Add: [
+    -nostdlib,
+    -ffreestanding,
+    -target, i686-elf,
+    -I/home/mturtle/cpp/mtos/sysroot/usr/include
+  ]
+  Remove: [-stdlib=libc++, -stdlib=libc++abi]
