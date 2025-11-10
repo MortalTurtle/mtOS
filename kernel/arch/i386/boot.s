@@ -17,6 +17,7 @@ stack_bottom:
 stack_top:
 
 .extern __stack_chk_guard
+.extern init_paging
 
 .section .text
 .global _start
@@ -36,7 +37,7 @@ _start:
     call load_idt
     call PIC_configure
     sti
-    call enable_paging
+    call init_paging
     call kernel_main
     call _fini
     cli
@@ -47,7 +48,7 @@ init_stack_check_guard:
     rdtsc               # EDX:EAX = TSC
     xor %ecx, %eax
     xor %esp, %eax
-    xor 4(%esi), %eax    
+    xor 4(%esi), %eax
     mov $__stack_chk_guard, %ecx
     mov %eax, (%ecx)
     ret
@@ -72,15 +73,24 @@ load_idt:
   lidt [idt_ptr]
   ret
 
-.extern page_directory
-.extern init_paging
-enable_paging:
-    call init_paging
-    mov $page_directory, %eax
+.global paging_load_directory
+.global enable_paging
+
+paging_load_directory:
+    push %ebp
+    mov %esp, %ebp
+    mov 8(%ebp), %eax
     mov %eax, %cr3
+    pop %ebp
+    ret
+
+enable_paging:
+    push %ebp
+    mov %esp, %ebp
     mov %cr0, %eax
-    or $0x80010000, %eax
+    or $0x80000000, %eax
     mov %eax, %cr0
+    pop %ebp
     ret
 
 .size _start, . - _start
