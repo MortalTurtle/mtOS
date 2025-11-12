@@ -18,8 +18,10 @@ struct ISRTable {
  private:
   int cnt = 0;
   ISRTable() {
+    // register interrupt hanlders
     isr_table[14] = handle_page_fault;
     valid[14] = true;
+    // register syscalls
   }
   ISRTable(ISRTable&&) = delete;
   ISRTable(const ISRTable&) = delete;

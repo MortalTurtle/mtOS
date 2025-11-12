@@ -74,7 +74,7 @@ isr_common_handler:
     mov %ax, %es
     mov %ax, %fs
     mov %ax, %gs
-    
+
     push %esp
     call exception_handler
     add $4, %esp            # pop num of interrupt and error code from stack

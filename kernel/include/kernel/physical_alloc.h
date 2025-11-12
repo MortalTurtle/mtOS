@@ -2,9 +2,9 @@
 #include <stdint.h>
 
 namespace page_info {
-uint64_t page_size_bytes();
+uint32_t page_size_bits();
 }
 
-extern "C" void init_phys_allocator();
-extern "C" void* alloc_physical_page();
-extern "C" void free_physical_page(void* addr);
+void init_phys_allocator();
+void* alloc_physical_page();
+void free_physical_page(void* addr);
