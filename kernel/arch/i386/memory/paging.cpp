@@ -1,14 +1,9 @@
 #include "paging.h"
-#include <kernel/memory_manager.h>
+#include <kernel/physical_alloc.h>
 #include <stdint.h>
-#include "physical_alloc.h"
 
 uint32_t page_directory[1024] __attribute__((aligned(4096)));
 uint32_t first_page_table[1024] __attribute__((aligned(4096)));
-
-#define KERNEL_VIRTUAL_BASE 0xC0000000  // 3GB
-#define USER_SPACE_END 0xBFFFFFFF       // end user space (3GB - 1)
-#define KERNEL_PD_START 768             // 768 PD = 3GB
 
 extern "C" void paging_load_directory(uint32_t*);
 extern "C" void enable_paging();
@@ -17,10 +12,10 @@ extern "C" void init_paging() {
   page_directory[0] = (uint32_t)first_page_table | PAGE_PRESENT | PAGE_RW;
   for (int i = 0; i < 1024; ++i)
     first_page_table[i] = (i * 0x1000) | PAGE_PRESENT | PAGE_RW;
-  for (int i = 1; i < KERNEL_PD_START; ++i) page_directory[i] = 0;
-  page_directory[KERNEL_PD_START] =
-      (uint32_t)first_page_table | PAGE_PRESENT | PAGE_RW;
+  for (int i = 1; i < 1024; ++i) page_directory[i] = 0;
   page_directory[1023] = (uint32_t)page_directory | PAGE_PRESENT | PAGE_RW;
+  page_directory[768] = (uint32_t)first_page_table | PAGE_PRESENT | PAGE_RW;
+
   paging_load_directory(page_directory);
   enable_paging();
 }
