@@ -79,5 +79,3 @@ struct GDTPtr {
 
 GDTFlat gdt;
 GDTPtr gdt_ptr{sizeof(gdt.entries) - 1, (uint32_t)gdt.entries};
-
-void setup_gdt() {}

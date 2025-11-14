@@ -1,6 +1,7 @@
-#include "paging.h"
+#include <kernel/paging.h>
 #include <kernel/physical_alloc.h>
 #include <stdint.h>
+#include "paging_defs.h"
 
 uint32_t page_directory[1024] __attribute__((aligned(4096)));
 uint32_t first_page_table[1024] __attribute__((aligned(4096)));
@@ -27,6 +28,8 @@ void flush_tlb_single(uint32_t addr) {
 extern "C" void flush_tlb() {
   asm volatile("mov %%cr3, %%eax; mov %%eax, %%cr3" ::: "eax");
 }
+
+paging_info paging_info::info() { return {4096}; }
 
 extern "C" void* get_physaddr(void* virtualaddr) {
   uint32_t pdindex = (uint32_t)virtualaddr >> 22;
@@ -60,6 +63,21 @@ extern "C" void map_page(void* physaddr, void* virtualaddr,
 
   uint32_t* pt = (uint32_t*)(0xFFC00000 + (pdindex << 12));
   pt[ptindex] = (uint32_t)physaddr | (flags & 0xFFF) | PAGE_PRESENT;  // Present
+
+  flush_tlb_single((uint32_t)virtualaddr);
+}
+
+extern "C" void unmap_page(void* virtualaddr) {
+  if ((uint32_t)virtualaddr & 0xFFF) return;
+  unsigned long pdindex = (unsigned long)virtualaddr >> 22;
+  unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+  uint32_t* pd = (uint32_t*)0xFFFFF000;
+
+  if (!(pd[pdindex] & PAGE_PRESENT)) return;
+  uint32_t* pt = (uint32_t*)(0xFFC00000 + (pdindex << 12));
+
+  if (!(pt[ptindex] & PAGE_PRESENT)) return;
+  pt[ptindex] = 0;
 
   flush_tlb_single((uint32_t)virtualaddr);
 }

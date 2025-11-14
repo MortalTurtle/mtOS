@@ -1,5 +1,7 @@
 #include <kernel/memory.h>
 #include <kernel/page_alloc.h>
+#include <kernel/paging.h>
+#include <kernel/physical_alloc.h>
 
 #define USER_SPACE_START 0x00000000
 #define USER_SPACE_END 0xBFFFF000  // 3GB aligned
@@ -20,9 +22,28 @@ page_allocator<USER_SPACE_START, USER_SPACE_END, PAGE_SIZE> user_v_page_alloc;
 page_allocator<KERNEL_SPACE_START, KERNEL_SPACE_END, PAGE_SIZE>
     kernel_v_page_alloc;
 
-void* valloc(uint64_t pages) {}
+void init_virtual_allocator() {}
 
-void vfree(void* addr, uint64_t pages) {}
+void* valloc(uint64_t pages) { return user_v_page_alloc.alloc_pages(pages); }
 
-void* kvalloc(uint64_t pages) {}
-void kvfree(void* addr, uint64_t pages) {}
+void vfree(void* addr, uint64_t pages) {
+  for (uint64_t i = 0; i < pages; i++) {
+    void* page_virt = (void*)((uint32_t)addr + i * PAGE_SIZE);
+    void* phys_addr = get_physaddr(page_virt);
+    unmap_page(page_virt);
+    if (phys_addr) free_physical_page(phys_addr);
+  }
+  user_v_page_alloc.free_pages(addr, pages);
+}
+
+void* kvalloc(uint64_t pages) { return kernel_v_page_alloc.alloc_pages(pages); }
+
+void kvfree(void* addr, uint64_t pages) {
+  for (uint64_t i = 0; i < pages; i++) {
+    void* page_virt = (void*)((uint32_t)addr + i * PAGE_SIZE);
+    void* phys_addr = get_physaddr(page_virt);
+    unmap_page(page_virt);
+    if (phys_addr) free_physical_page(phys_addr);
+  }
+  kernel_v_page_alloc.free_pages(addr, pages);
+}

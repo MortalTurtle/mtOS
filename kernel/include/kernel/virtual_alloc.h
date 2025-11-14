@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-void virtual_alloc_init();
+void init_virtual_allocator();
 
 void* valloc(uint64_t pages);
 void vfree(void* addr, uint64_t pages);

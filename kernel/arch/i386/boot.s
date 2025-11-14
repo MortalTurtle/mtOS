@@ -17,7 +17,6 @@ stack_bottom:
 stack_top:
 
 .extern __stack_chk_guard
-.extern init_paging
 
 .section .text
 .global _start
@@ -37,7 +36,6 @@ _start:
     call load_idt
     call PIC_configure
     sti
-    call init_paging
     call kernel_main
     call _fini
     cli

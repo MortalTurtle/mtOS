@@ -9,8 +9,6 @@
 #define PAGE_SIZE 4096
 #define MAX_MEMORY 0xFFFFF000  // 4GB
 
-uint32_t page_info::page_size_bits() { return PAGE_SIZE; }
-
 page_allocator<0, MAX_MEMORY, PAGE_SIZE> page_alloc;
 
 // defined in linker script
@@ -52,4 +50,4 @@ void init_phys_allocator() {
 
 void* alloc_physical_page() { return page_alloc.alloc_page(); }
 
-void free_physical_page(void* addr) { return page_alloc.free_page(addr); }
+void free_physical_page(void* addr) { page_alloc.free_page(addr); }

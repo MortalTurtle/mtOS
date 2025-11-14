@@ -1,7 +1,8 @@
 #include "interrupts.h"
 #include <kernel/kernel.h>
+#include <kernel/paging.h>
 #include <kernel/physical_alloc.h>
-#include "memory/paging.h"
+#include "memory/paging_defs.h"
 
 void handle_user_oom(uint32_t fault_addr, Registers* regs) {
   void* phys = alloc_physical_page();
