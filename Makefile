@@ -34,7 +34,7 @@ export LIBDIR := $(EXEC_PREFIX)/lib
 export INCLUDEDIR := $(PREFIX)/include
 
 export CFLAGS := -O2 -g
-export CPPFLAGS := 
+export CPPFLAGS :=
 
 SYSROOT := $(abspath sysroot)
 ISODIR = isodir

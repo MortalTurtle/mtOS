@@ -48,6 +48,13 @@ void init_phys_allocator() {
   printf("Total memory: %u MB\n", MAX_MEMORY / 1024 / 1024);
 }
 
-void* alloc_physical_page() { return page_alloc.alloc_page(); }
+void* alloc_physical_page() {
+  auto page = page_alloc.alloc_page();
+  printf("allocated phys mem at 0x%x\n", page);
+  return page;
+}
 
-void free_physical_page(void* addr) { page_alloc.free_page(addr); }
+void free_physical_page(void* addr) {
+  printf("deallocate phys mem at 0x%x\n", addr);
+  page_alloc.free_page(addr);
+}

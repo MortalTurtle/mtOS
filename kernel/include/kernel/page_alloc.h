@@ -113,4 +113,3 @@ class page_allocator {
   static constexpr uint64_t memory_end = MEM_END;
   static constexpr uint64_t page_size = PAGE_SIZE;
 };
-;

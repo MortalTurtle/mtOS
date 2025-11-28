@@ -23,7 +23,7 @@ class bitmap {
     bitmap_[byte] |= (1 << bit);
   }
 
-  int bitmap_test(uint64_t index) {
+  int bitmap_test(uint64_t index) const {
     if (index >= bit_size) return 1;
     uint64_t byte = index / 8;
     uint64_t bit = index % 8;
