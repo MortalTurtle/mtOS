@@ -2,21 +2,21 @@
 
 A hobby operating system project developed to explore the core principles of OS development.
 
-## 🎯 Project Goals
+## Project Goals
 
 *   To understand the fundamental principles of operating system development.
 *   To gain practical experience by implementing core OS components.
 *   To build a multiprocessing system with **preemptive multitasking**.
 *   Experimental development without strict adherence to classical OS structures.
 
-## ✨ Features
+## Features
 
 *   **Architecture Support:** i386 (currently in development).
 *   **Multitasking:** Preemptive multitasking, allowing the OS to control process switching.
 *   **Multiprocessing:** Support for multiple concurrent processes.
 *   **From-Scratch Design:** Built from the ground up for educational purposes.
 
-## 🛠 Building and Running
+##  Building and Running
 
 Building requires a cross-compiler toolchain for the target CPU architecture.
 
