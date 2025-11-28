@@ -31,7 +31,7 @@ In future should support build for different CPU architectures, currently built 
 
 1.  Clone the repository:
     ```bash
-    git clone git@github.com:MortalTurtle/mtOS.git
+    git clone https://github.com/MortalTurtle/mtOS.git
     cd mtOS
     ```
 
