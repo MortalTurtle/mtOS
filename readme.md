@@ -31,8 +31,8 @@ In future should support build for different CPU architectures, currently built 
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/your-username/your-os-repo.git
-    cd your-os-repo
+    git clone git@github.com:MortalTurtle/mtOS.git
+    cd mtOS
     ```
 
 2.  Build the project:
