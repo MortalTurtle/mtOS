@@ -83,3 +83,6 @@ qemu: iso
 	echo "Stopping QEMU..."; \
 	kill $$QEMU_PID \
 	)
+
+qemu-clean: qemu
+	@$(MAKE) clean

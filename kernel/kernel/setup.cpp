@@ -1,4 +1,5 @@
-#include <kernel/kernel.h>
+#include <kernel/kernellib.h>
+#include <kernel/memory.h>
 #include <kernel/multiboot.h>
 #include <kernel/paging.h>
 #include <kernel/physical_alloc.h>
@@ -9,4 +10,5 @@ void system_setup(uint32_t multiboot_info_phys) {
   multiboot_parse(multiboot_info_phys);
   init_phys_allocator();
   init_virtual_allocator();
+  init_kernel_memory_allocator();
 }

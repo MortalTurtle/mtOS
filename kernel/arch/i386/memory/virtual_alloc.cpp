@@ -3,6 +3,7 @@
 #include <kernel/paging.h>
 #include <kernel/physical_alloc.h>
 #include <stdio.h>
+#include "paging_defs.h"
 
 #define USER_SPACE_START 0x00000000
 #define USER_SPACE_END 0xBFFFF000  // 3GB aligned
@@ -53,14 +54,18 @@ void init_virtual_allocator() {
 void* valloc(uint64_t pages) {
   auto page = user_v_page_alloc.alloc_pages(pages);
   if (!page) return nullptr;
+#ifdef DEBUG
   printf("allocated virt mem at 0x%x\n", (uint32_t)page);
+#endif
   return page;
 }
 
 void vfree(void* addr, uint64_t pages) {
   for (uint64_t i = 0; i < pages; i++) {
     void* page_virt = (void*)((uint32_t)addr + i * PAGE_SIZE);
+#ifdef DEBUG
     printf("deallocated virt mem at 0x%x\n", (uint32_t)page_virt);
+#endif
     void* phys_addr = get_physaddr(page_virt);
     unmap_page(page_virt);
     if (phys_addr) free_physical_page(phys_addr);
@@ -70,17 +75,41 @@ void vfree(void* addr, uint64_t pages) {
 
 void* kvalloc(uint64_t pages) {
   auto page = kernel_v_page_alloc.alloc_pages(pages);
+#ifdef DEBUG
   printf("allocated virt mem at 0x%x\n", (uint32_t)page);
+#endif
   return page;
 }
 
 void kvfree(void* addr, uint64_t pages) {
   for (uint64_t i = 0; i < pages; i++) {
     void* page_virt = (void*)((uint32_t)addr + i * PAGE_SIZE);
+#ifdef DEBUG
     printf("deallocated virt mem at 0x%x\n", page_virt);
+#endif
     void* phys_addr = get_physaddr(page_virt);
     unmap_page(page_virt);
     if (phys_addr) free_physical_page(phys_addr);
   }
   kernel_v_page_alloc.free_pages(addr, pages);
+}
+
+void* kvalloc_immediate(uint64_t pages) {
+  void* virt = kernel_v_page_alloc.alloc_pages(pages);
+  if (!virt) return nullptr;
+  for (uint64_t i = 0; i < pages; i++) {
+    void* phys = alloc_physical_page();
+    if (!phys) {
+      for (uint64_t j = 0; j < i; j++) {
+        void* v = (void*)((uint32_t)virt + j * PAGE_SIZE);
+        unmap_page(v);
+      }
+      kernel_v_page_alloc.free_pages(virt, pages);
+      return nullptr;
+    }
+    void* page_virt = (void*)((uint32_t)virt + i * PAGE_SIZE);
+    map_page(phys, page_virt, PAGE_PRESENT | PAGE_RW);
+    memset(page_virt, 0, PAGE_SIZE);
+  }
+  return virt;
 }

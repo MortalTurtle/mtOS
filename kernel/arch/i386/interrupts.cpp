@@ -1,5 +1,5 @@
 #include "interrupts.h"
-#include <kernel/kernel.h>
+#include <kernel/kernellib.h>
 #include <kernel/paging.h>
 #include <kernel/physical_alloc.h>
 #include "memory/paging_defs.h"

@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+#include <kernel/kernellib.h>
 #include <stdio.h>
 
 extern "C" __attribute__((noreturn)) void panic(char* msg) {

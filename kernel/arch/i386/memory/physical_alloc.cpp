@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+#include <kernel/kernellib.h>
 #include <kernel/multiboot.h>
 #include <kernel/page_alloc.h>
 #include <kernel/physical_alloc.h>
@@ -50,11 +50,15 @@ void init_phys_allocator() {
 
 void* alloc_physical_page() {
   auto page = page_alloc.alloc_page();
+#ifdef DEBUG
   printf("allocated phys mem at 0x%x\n", page);
+#endif
   return page;
 }
 
 void free_physical_page(void* addr) {
+#ifdef DEBUG
   printf("deallocate phys mem at 0x%x\n", addr);
+#endif
   page_alloc.free_page(addr);
 }
