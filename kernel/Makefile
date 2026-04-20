@@ -23,6 +23,18 @@ CPPFLAGS:=$(CPPFLAGS) $(KERNEL_ARCH_CPPFLAGS)
 LDFLAGS:=$(LDFLAGS) $(KERNEL_ARCH_LDFLAGS)
 LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
 
+ifdef DEBUG
+    ifeq ($(DEBUG),1)
+        CFLAGS:=$(CFLAGS) -DDEBUG -O0 -g
+        CPPFLAGS:=$(CPPFLAGS) -DDEBUG
+        $(info Kernel: Building with DEBUG enabled)
+    else
+        $(info Kernel: Building without DEBUG)
+    endif
+else
+    $(info Kernel: Building without DEBUG)
+endif
+
 KERNEL_OBJS=\
 $(KERNEL_ARCH_OBJS) \
 kernel/kernel.o \

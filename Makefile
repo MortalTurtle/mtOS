@@ -4,6 +4,7 @@ PROJECTS := libc kernel
 DEFAULT_HOST=i686-elf
 MAKE ?= make
 HOST ?= $(DEFAULT_HOST)
+DEBUG ?= 0
 ifeq ($(findstring i686,$(HOST)),i686)
     HOSTARCH = i386
 else ifeq ($(findstring i586,$(HOST)),i586)
@@ -36,6 +37,15 @@ export INCLUDEDIR := $(PREFIX)/include
 export CFLAGS := -O2 -g
 export CPPFLAGS :=
 
+ifeq ($(DEBUG),1)
+    export CFLAGS := -O0 -g -DDEBUG
+    export CPPFLAGS := -DDEBUG
+    $(info Building with DEBUG enabled)
+else
+    export CFLAGS := -O2 -g
+    $(info Building without DEBUG)
+endif
+
 SYSROOT := $(abspath sysroot)
 ISODIR = isodir
 export CC := $(CC) --sysroot=$(SYSROOT)
@@ -47,6 +57,9 @@ endif
 .PHONY: all headers build clean
 
 all: build
+
+debug:
+	$(MAKE) DEBUG=1 build
 
 headers:
 	@mkdir -p $(SYSROOT)
