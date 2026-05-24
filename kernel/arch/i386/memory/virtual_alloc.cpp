@@ -54,18 +54,12 @@ void init_virtual_allocator() {
 void* valloc(uint64_t pages) {
   auto page = user_v_page_alloc.alloc_pages(pages);
   if (!page) return nullptr;
-#ifdef DEBUG
-  printf("allocated virt mem at 0x%x\n", (uint32_t)page);
-#endif
   return page;
 }
 
 void vfree(void* addr, uint64_t pages) {
   for (uint64_t i = 0; i < pages; i++) {
     void* page_virt = (void*)((uint32_t)addr + i * PAGE_SIZE);
-#ifdef DEBUG
-    printf("deallocated virt mem at 0x%x\n", (uint32_t)page_virt);
-#endif
     void* phys_addr = get_physaddr(page_virt);
     unmap_page(page_virt);
     if (phys_addr) free_physical_page(phys_addr);
@@ -75,18 +69,12 @@ void vfree(void* addr, uint64_t pages) {
 
 void* kvalloc(uint64_t pages) {
   auto page = kernel_v_page_alloc.alloc_pages(pages);
-#ifdef DEBUG
-  printf("allocated virt mem at 0x%x\n", (uint32_t)page);
-#endif
   return page;
 }
 
 void kvfree(void* addr, uint64_t pages) {
   for (uint64_t i = 0; i < pages; i++) {
     void* page_virt = (void*)((uint32_t)addr + i * PAGE_SIZE);
-#ifdef DEBUG
-    printf("deallocated virt mem at 0x%x\n", page_virt);
-#endif
     void* phys_addr = get_physaddr(page_virt);
     unmap_page(page_virt);
     if (phys_addr) free_physical_page(phys_addr);

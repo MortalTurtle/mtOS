@@ -33,12 +33,31 @@ void init_phys_allocator() {
                           kernel_end - 1);  // Kernel Code/Data/BSS
   const multiboot_info* mbi = multiboot_get_info();
   if (mbi->flags & (1 << 3)) {
-    printf("Reserving multiboot modules...\n");
-    struct multiboot_module* mods =
-        (struct multiboot_module*)(mbi->mods_addr + 0xC0000000);
-    for (uint32_t i = 0; i < mbi->mods_count; i++) {
-      page_alloc.reserve_area(mods[i].mod_start, mods[i].mod_end - 1);
+    printf("mbi->mods_count = %u\n", mbi->mods_count);
+    printf("mbi->mods_addr = 0x%x\n", mbi->mods_addr);
+
+    if (mbi->mods_addr < 0x100000 || mbi->mods_addr > 0x1000000) {
+      printf("WARNING: suspicious mods_addr, skipping modules\n");
+    } else {
+      struct multiboot_module* mods =
+          (struct multiboot_module*)(mbi->mods_addr + 0xC0000000);
+
+      uint32_t mod_start = mods[0].mod_start;
+      uint32_t mod_end = mods[0].mod_end;
+      printf("Module 0: 0x%x - 0x%x\n", mod_start, mod_end);
+      if (mod_start < 0x100000 || mod_end > 0xFFFFF000) {
+        printf("WARNING: module outside valid range, skipping\n");
+      } else {
+        page_alloc.reserve_area(mod_start, mod_end - 1);
+      }
     }
+    // if (mbi->flags & (1 << 3)) {
+    //   printf("Reserving multiboot modules...\n");
+    //   struct multiboot_module* mods =
+    //       (struct multiboot_module*)(mbi->mods_addr + 0xC0000000);
+    //   for (uint32_t i = 0; i < mbi->mods_count; i++) {
+    //     page_alloc.reserve_area(mods[i].mod_start, mods[i].mod_end - 1);
+    //   }
   }
   page_alloc.reserve_area(0xFEC00000, 0xFEC00FFF);  // IOAPIC
   page_alloc.reserve_area(0xFEE00000, 0xFEE00FFF);  // Local APIC
@@ -50,15 +69,7 @@ void init_phys_allocator() {
 
 void* alloc_physical_page() {
   auto page = page_alloc.alloc_page();
-#ifdef DEBUG
-  printf("allocated phys mem at 0x%x\n", page);
-#endif
   return page;
 }
 
-void free_physical_page(void* addr) {
-#ifdef DEBUG
-  printf("deallocate phys mem at 0x%x\n", addr);
-#endif
-  page_alloc.free_page(addr);
-}
+void free_physical_page(void* addr) { page_alloc.free_page(addr); }

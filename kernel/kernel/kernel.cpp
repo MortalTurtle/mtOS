@@ -9,7 +9,7 @@ extern "C" void kernel_main(uint32_t multiboot_info_phys) {
   terminal_initialize();
   printf("Wazzaap!!\n");
   system_setup(multiboot_info_phys);
-  for (int i = 0; i < 1000; ++i) {
+  for (int i = 0; i < 10; ++i) {
     int* ints = (int*)kmalloc(16);
   }
   // ints[0] = 1;
