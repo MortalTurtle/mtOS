@@ -2,6 +2,7 @@
 #include <kernel/proc.h>
 #include <string.h>
 
+#include "kernel/paging.h"
 #include "kernel/physical_alloc.h"
 #include "kernel/virtual_alloc.h"
 
@@ -58,13 +59,11 @@ struct process* alloc_process() {
 void userinit() {
   process* p = alloc_process();
   if (!p) panic("Failed to allocate init process");
-  p->pgdir = alloc_physical_page();
+  p->pgdir = kvalloc_immediate(1);
   if (!p->pgdir) panic("Failed to allocate page directory");
   memset(p->pgdir, 0, 4096);
-
   copy_kernel_mappings(p->pgdir);
   if (load_initcode(p) < 0) panic("Failed to load initcode");
-
   setup_process_trapframe(p, 0, p->sz);
   p->state = proc_state::Runnable;
   initproc = p;

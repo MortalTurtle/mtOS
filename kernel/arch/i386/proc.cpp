@@ -32,8 +32,14 @@ int load_initcode(struct process* p) {
 
   map_page(phys, (void*)0, PAGE_PRESENT | PAGE_RW | PAGE_USER);
   memcpy((void*)0, _binary_initcode_start, (size_t)&_binary_initcode_size);
+  void* stack_phys = alloc_physical_page();
+  if (!stack_phys) {
+    free_physical_page(phys);
+    return -1;
+  }
+  map_page(stack_phys, (void*)0x1000, PAGE_PRESENT | PAGE_RW | PAGE_USER);
 
-  p->sz = 4096;
+  p->sz = 4096 + 4096;
   return 0;
 }
 

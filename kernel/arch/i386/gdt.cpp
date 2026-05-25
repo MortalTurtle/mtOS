@@ -58,7 +58,7 @@ struct GDTEntry {
 } __attribute__((packed));
 
 struct GDTFlat {
-  GDTEntry entries[5];
+  GDTEntry entries[6];
   GDTFlat() {
     entries[0] = GDTEntry(0, 0, 0);  // Null descriptor
     entries[1] =

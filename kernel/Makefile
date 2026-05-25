@@ -76,7 +76,7 @@ $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
 # Special rule for first proc code
-$(ARCHDIR)/init_code.o:
+$(ARCHDIR)/initcode.o:
 	$(CC) -m32 -ffreestanding -c $(ARCHDIR)/initcode.S -o $(ARCHDIR)/initcode.tmp.o && \
 	$(LD) -m elf_i386 -N -e start -Ttext 0 -o $(ARCHDIR)/initcode.out $(ARCHDIR)/initcode.tmp.o && \
 	i686-elf-objcopy -S -O binary $(ARCHDIR)/initcode.out initcode && \
@@ -93,6 +93,7 @@ clean:
 	rm -f $(OSBIN)
 	rm -f $(OBJS) *.o */*.o */*/*.o
 	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
+	rm initcode
 
 install: install-headers install-kernel
 
