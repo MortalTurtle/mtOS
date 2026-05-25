@@ -12,8 +12,8 @@ extern "C" void kernel_main(uint32_t multiboot_info_phys) {
   system_setup(multiboot_info_phys);
   printf("Wazzaap!!\n");
 
-  init_processes();
-  userinit();
-  scheduler();
+  // init_processes();
+  // userinit();
+  // scheduler();
   for (;;);
 }
