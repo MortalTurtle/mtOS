@@ -2,7 +2,6 @@
 #include <kernel/proc.h>
 #include <string.h>
 
-#include "kernel/memory.h"
 #include "kernel/physical_alloc.h"
 #include "kernel/virtual_alloc.h"
 
@@ -34,32 +33,30 @@ struct process* alloc_process() {
 
   p->pid = (p - proc_table) + 1;
   p->state = proc_state::Embryo;
-
   p->kstack = kvalloc_immediate(KERNEL_STACK_SIZE / 4096);
   if (!p->kstack) {
     p->state = proc_state::Unused;
     return nullptr;
   }
 
-  p->tf = (struct trapframe*)((uint32_t)p->kstack + KERNEL_STACK_SIZE) - 1;
+  char* sp = (char*)p->kstack + KERNEL_STACK_SIZE;
+  sp -= sizeof(trapframe);
+  p->tf = (trapframe*)sp;
+  sp -= 4;
 
-  p->context = (struct context*)kmalloc(sizeof(struct context));
-  if (!p->context) {
-    kvfree(p->kstack, KERNEL_STACK_SIZE / 4096);
-    p->state = proc_state::Unused;
-    return nullptr;
-  }
+  *(uint32_t*)sp = (uint32_t)trapret;
 
-  memset(p->context, 0, sizeof(struct context));
+  sp -= sizeof(context);
+  p->context = (context*)sp;
+  memset(p->context, 0, sizeof(context));
 
-  struct context* ctx = (struct context*)p->context;
-  ctx->eip = (uint32_t)forkret;  // First function to execute
-  ctx->esp = (uint32_t)p->tf;    // Stack pointer points to trapframe
+  p->context->eip = (uint32_t)forkret;
+
   return p;
 }
 
 void userinit() {
-  struct process* p = alloc_process();
+  process* p = alloc_process();
   if (!p) panic("Failed to allocate init process");
   p->pgdir = alloc_physical_page();
   if (!p->pgdir) panic("Failed to allocate page directory");

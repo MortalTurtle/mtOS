@@ -41,6 +41,8 @@ kernel/kernel.o \
 kernel/setup.o \
 kernel/memory.o \
 kernel/multiboot.o \
+kernel/proc.o \
+kernel/scheduler.o \
 
 OBJS=\
 $(ARCHDIR)/crti.o \

@@ -26,9 +26,7 @@ void scheduler() {
         p->state = proc_state::Unused;
         if (p->kstack) kvfree(p->kstack, KERNEL_STACK_SIZE / 4096);
         if (p->context) kfree(p->context);
-        if (p->pgdir) {
-          free_physical_page(p->pgdir);
-        }
+        if (p->pgdir) free_physical_page(p->pgdir);
       }
     }
   }

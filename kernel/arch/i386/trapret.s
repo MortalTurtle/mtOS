@@ -1,11 +1,10 @@
-.section .text
 .global trapret
 trapret:
     # Restore data segments
-    popl %ds
-    popl %es
-    popl %fs
     popl %gs
+    popl %fs
+    popl %es
+    popl %ds
     # Restore general purpose registers
     popal
     # Skip interrupt and error code
