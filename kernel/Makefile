@@ -75,6 +75,14 @@ $(OSBIN): $(OBJS) $(ARCHDIR)/linker.ld
 $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
+# Special rule for first proc code
+$(ARCHDIR)/init_code.o:
+	$(CC) -m32 -ffreestanding -c $(ARCHDIR)/initcode.S -o $(ARCHDIR)/initcode.tmp.o && \
+	$(LD) -m elf_i386 -N -e start -Ttext 0 -o $(ARCHDIR)/initcode.out $(ARCHDIR)/initcode.tmp.o && \
+	i686-elf-objcopy -S -O binary $(ARCHDIR)/initcode.out initcode && \
+	$(LD) -m elf_i386 -r -b binary -o $@ initcode && \
+	rm -f $(ARCHDIR)/initcode.tmp.o $(ARCHDIR)/initcode.out
+
 .cpp.o:
 	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
