@@ -9,3 +9,5 @@ struct Registers {
 } __attribute__((packed));
 
 void handle_page_fault(Registers* regs);
+
+void syscall_handler(Registers* regs);

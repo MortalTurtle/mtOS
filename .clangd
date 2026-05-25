@@ -3,6 +3,7 @@ CompileFlags:
     -nostdlib,
     -ffreestanding,
     -target, i686-elf,
-    -I/home/mturtle/cpp/mtos/sysroot/usr/include
+    -I/home/mturtle/cpp/mtos/sysroot/usr/include,
+    -Di386
   ]
   Remove: [-stdlib=libc++, -stdlib=libc++abi]

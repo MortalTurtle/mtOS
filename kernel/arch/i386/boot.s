@@ -35,6 +35,7 @@ _start:
     call load_gdt
     call IDT_configure
     call load_idt
+    call init_tss
     call PIC_configure
     sti
     call kernel_main

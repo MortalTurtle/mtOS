@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+
 #include "interrupts.h"
 
 struct ISRTable {
@@ -21,7 +22,8 @@ struct ISRTable {
     // register interrupt hanlders
     isr_table[14] = handle_page_fault;
     valid[14] = true;
-    // register syscalls
+    isr_table[0x80] = syscall_handler;  // 0x80 is syscall interrupt
+    valid[0x80] = true;
   }
   ISRTable(ISRTable&&) = delete;
   ISRTable(const ISRTable&) = delete;

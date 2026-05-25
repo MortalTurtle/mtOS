@@ -1,7 +1,9 @@
-#include "interrupts.h"
 #include <kernel/kernellib.h>
 #include <kernel/paging.h>
 #include <kernel/physical_alloc.h>
+#include <kernel/proc.h>
+
+#include "interrupts.h"
 #include "memory/paging_defs.h"
 
 void handle_user_oom(uint32_t fault_addr, Registers* regs) {
@@ -41,4 +43,45 @@ void handle_page_fault(Registers* regs) {
     else
       handle_kernel_oom(fault_addr, regs);
   }
+}
+
+// Dummy syscall handlers for init process
+static int sys_exec(void) {
+  // For now, just return success - init process will be replaced
+  // Real implementation would load /init from disk
+  return 0;
+}
+
+static int sys_exit(void) {
+  if (current_process) {
+    current_process->state = proc_state::Zombie;
+    yield();
+  }
+  return 0;
+}
+
+static int sys_getpid(void) {
+  if (current_process) {
+    return current_process->pid;
+  }
+  return -1;
+}
+
+void syscall_handler(Registers* regs) {
+  int syscall_num = regs->eax;
+  int result = -1;
+  switch (syscall_num) {
+    case 1:  // SYS_exec
+      result = sys_exec();
+      break;
+    case 2:  // SYS_exit
+      result = sys_exit();
+      break;
+    case 11:  // SYS_getpid (common)
+      result = sys_getpid();
+      break;
+    default:
+      result = -1;
+  }
+  regs->eax = result;
 }

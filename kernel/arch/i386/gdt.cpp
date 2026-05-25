@@ -18,6 +18,7 @@
 #define SEG_DATA_RDEXPDA 0x05    // Read-Only, expand-down, accessed
 #define SEG_DATA_RDWREXPD 0x06   // Read/Write, expand-down
 #define SEG_DATA_RDWREXPDA 0x07  // Read/Write, expand-down, accessed
+#define SEG_TSS 0x9              // TSS segment type
 #define SEG_CODE_EX 0x08         // Execute-Only
 #define SEG_CODE_EXA 0x09        // Execute-Only, accessed
 #define SEG_CODE_EXRD 0x0A       // Execute/Read
@@ -68,7 +69,7 @@ struct GDTFlat {
         GDTEntry(0, 0x000FFFFF, GDT_CODE_PL3);  // User Mode Code segment
     entries[4] =
         GDTEntry(0, 0x000FFFFF, GDT_DATA_PL3);  // User Mode Data segment
-    // entries[5] = GDTEntry(0,0,0); // TS segment
+    entries[5] = GDTEntry(0, 0, 0);             // TS segment
   }
 } __attribute__((packed));
 
@@ -79,3 +80,52 @@ struct GDTPtr {
 
 GDTFlat gdt;
 GDTPtr gdt_ptr{sizeof(gdt.entries) - 1, (uint32_t)gdt.entries};
+
+struct TSS {
+  uint32_t link;
+  uint32_t esp0;
+  uint32_t ss0;
+  uint32_t esp1;
+  uint32_t ss1;
+  uint32_t esp2;
+  uint32_t ss2;
+  uint32_t cr3;
+  uint32_t eip;
+  uint32_t eflags;
+  uint32_t eax;
+  uint32_t ecx;
+  uint32_t edx;
+  uint32_t ebx;
+  uint32_t esp;
+  uint32_t ebp;
+  uint32_t esi;
+  uint32_t edi;
+  uint32_t es;
+  uint32_t cs;
+  uint32_t ss;
+  uint32_t ds;
+  uint32_t fs;
+  uint32_t gs;
+  uint32_t ldtr;
+  uint16_t trace;
+  uint16_t iomap_base;
+} __attribute__((packed));
+
+TSS tss;
+
+extern "C" void init_tss() {
+  uint32_t base = (uint32_t)&tss;
+  uint32_t limit = sizeof(TSS) - 1;
+
+  uint16_t flags = SEG_PRES(1) | SEG_SAVL(0) | SEG_TSS | SEG_PRIV(0);
+
+  gdt.entries[5] = GDTEntry(base, limit, flags);
+
+  tss.ss0 = 0x10;                // Kernel data segment selector
+  tss.esp0 = 0;                  // will be set on switch
+  tss.iomap_base = sizeof(TSS);  // No IO permission bitmap
+
+  asm volatile("ltr %%ax" : : "a"(0x28));
+}
+
+void set_tss_esp0(uint32_t esp) { tss.esp0 = esp; }
