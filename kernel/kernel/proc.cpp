@@ -59,12 +59,13 @@ struct process* alloc_process() {
 void userinit() {
   process* p = alloc_process();
   if (!p) panic("Failed to allocate init process");
-  p->pgdir = kvalloc_immediate(1);
-  if (!p->pgdir) panic("Failed to allocate page directory");
-  memset(p->pgdir, 0, 4096);
-  copy_kernel_mappings(p->pgdir);
+  void* pgdir_virt = kvalloc_immediate(1);
+  if (!pgdir_virt) panic("Failed to allocate page directory");
+  p->pgdir = get_physaddr(pgdir_virt);
+  memset(pgdir_virt, 0, 4096);
+  copy_kernel_mappings(pgdir_virt);
   if (load_initcode(p) < 0) panic("Failed to load initcode");
-  setup_process_trapframe(p, 0, p->sz);
+  setup_process_trapframe(p, 0x1000, p->sz);
   p->state = proc_state::Runnable;
   initproc = p;
 }
