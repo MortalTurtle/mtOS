@@ -1,7 +1,10 @@
 #pragma once
 #include <stdint.h>
+#include <stdio.h>
 
 #include "interrupts.h"
+#include "kernel/kernellib.h"
+#include "kernel/proc.h"
 
 struct ISRTable {
   using isr = void (*)(Registers*);
@@ -13,7 +16,18 @@ struct ISRTable {
     valid[cnt++] = true;
   }
   void call(int interrupt, Registers* regs) {
-    if (valid[interrupt]) isr_table[interrupt](regs);
+    if (valid[interrupt])
+      isr_table[interrupt](regs);
+    else {
+      printf("Unhandled exception: %d\n", interrupt);
+      if (regs->cs & 0x3) {
+        printf("Killing user process %d\n",
+               current_process ? current_process->pid : -1);
+        if (current_process) current_process->state = proc_state::Zombie;
+        yield();
+      } else
+        panic("Unhandled kernel exception");
+    }
   }
 
  private:

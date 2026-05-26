@@ -2,6 +2,7 @@
 #include <kernel/paging.h>
 #include <kernel/physical_alloc.h>
 #include <kernel/proc.h>
+#include <stdio.h>
 
 #include "interrupts.h"
 #include "memory/paging_defs.h"
@@ -42,6 +43,13 @@ void handle_page_fault(Registers* regs) {
       handle_user_oom(fault_addr, regs);
     else
       handle_kernel_oom(fault_addr, regs);
+  } else {
+    if (!user)
+      panic("Page Fault Protection Violation");  // TODO sys_exit if user;
+    else {
+      current_process->state = proc_state::Zombie;
+      yield();
+    }
   }
 }
 
@@ -68,6 +76,7 @@ static int sys_getpid(void) {
 }
 
 void syscall_handler(Registers* regs) {
+  printf("Wow syscall was called\n");
   int syscall_num = regs->eax;
   int result = -1;
   switch (syscall_num) {

@@ -1,6 +1,7 @@
 #include <kernel/paging.h>
 #include <kernel/physical_alloc.h>
 #include <stdint.h>
+
 #include "paging_defs.h"
 
 uint32_t page_directory[1024] __attribute__((aligned(4096)));
@@ -57,8 +58,10 @@ extern "C" void map_page(void* physaddr, void* virtualaddr,
     // Create new page table (must be allocated and initialized to zero)
     uint32_t* new_pt = (uint32_t*)alloc_physical_page();
     if (!new_pt) return;  // Handle allocation failure
-    for (int i = 0; i < 1024; i++) new_pt[i] = 0;
-    pd[pdindex] = (uint32_t)new_pt | PAGE_PRESENT | PAGE_RW;
+    pd[pdindex] = (uint32_t)new_pt | PAGE_PRESENT | PAGE_RW | PAGE_USER;
+    uint32_t* pt_virt = (uint32_t*)(0xFFC00000 + (pdindex << 12));
+    flush_tlb_single((uint32_t)pt_virt);
+    for (int i = 0; i < 1024; i++) pt_virt[i] = 0;
   }
 
   uint32_t* pt = (uint32_t*)(0xFFC00000 + (pdindex << 12));
