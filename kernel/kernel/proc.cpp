@@ -64,8 +64,13 @@ void userinit() {
   p->pgdir = get_physaddr(pgdir_virt);
   memset(pgdir_virt, 0, 4096);
   copy_kernel_mappings(pgdir_virt);
-  if (load_initcode(p) < 0) panic("Failed to load initcode");
-  setup_process_trapframe(p, 0x1000, 0x3000);
+  switchkvm(p->pgdir);
+  if (load_initcode(p) < 0) {
+    switchkvm(nullptr);
+    panic("Failed to load initcode");
+  }
+  switchkvm(nullptr);
+  setup_process_trapframe(p, 0x08000000, 0x08002000);
   p->state = proc_state::Runnable;
   initproc = p;
 }
