@@ -17,12 +17,17 @@ extern uint8_t _binary_initcode_size;
 
 extern void set_tss_esp0(uint32_t esp);
 
-void copy_kernel_mappings(void* pgdir) {
-  uint32_t* new_pgdir = (uint32_t*)pgdir;
-  uint32_t* kernel_pgdir = (uint32_t*)0xFFFFF000;
+void copy_kernel_mappings(void* pgdir_virt) {
+  uint32_t* new_pgdir = (uint32_t*)pgdir_virt;
+  uint32_t* kernel_pgdir =
+      (uint32_t*)0xFFFFF000;  // recursive mapping to current PD
 
-  for (int i = 768; i < 1024; i++) new_pgdir[i] = kernel_pgdir[i];
-  new_pgdir[1023] = (uint32_t)get_physaddr(pgdir);
+  for (int i = 768; i < 1024; i++) {
+    new_pgdir[i] = kernel_pgdir[i];
+  }
+
+  void* new_pgdir_phys = get_physaddr(pgdir_virt);
+  new_pgdir[1023] = (uint32_t)new_pgdir_phys | PAGE_PRESENT | PAGE_RW;
 }
 
 int load_initcode(struct process* p) {
