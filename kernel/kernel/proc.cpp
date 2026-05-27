@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "kernel/paging.h"
-#include "kernel/physical_alloc.h"
 #include "kernel/virtual_alloc.h"
 
 struct process proc_table[MAX_PROC_AMOUNT];
@@ -43,8 +42,8 @@ struct process* alloc_process() {
   char* sp = (char*)p->kstack + KERNEL_STACK_SIZE;
   sp -= sizeof(trapframe);
   p->tf = (trapframe*)sp;
-  sp -= 4;
 
+  sp -= 4;
   *(uint32_t*)sp = (uint32_t)trapret;
 
   sp -= sizeof(context);
@@ -62,14 +61,9 @@ void userinit() {
   void* pgdir_virt = kvalloc_immediate(1);
   if (!pgdir_virt) panic("Failed to allocate page directory");
   p->pgdir = get_physaddr(pgdir_virt);
-  memset(pgdir_virt, 0, 4096);
+  memset(pgdir_virt, 0, paging_info::info().page_size_bytes);
   copy_kernel_mappings(pgdir_virt);
-  switchkvm(p->pgdir);
-  if (load_initcode(p) < 0) {
-    switchkvm(nullptr);
-    panic("Failed to load initcode");
-  }
-  switchkvm(nullptr);
+  if (load_initcode(p) < 0) panic("Failed to load initcode");
   setup_process_trapframe(p, 0x08000000, 0x08002000);
   p->state = proc_state::Runnable;
   initproc = p;

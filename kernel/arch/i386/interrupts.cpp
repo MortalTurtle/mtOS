@@ -27,30 +27,31 @@ void handle_page_fault(Registers* regs) {
   uint32_t fault_addr;
   asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
+  uint32_t page_addr = fault_addr & ~0xFFF;  // align
+
   uint32_t error_code = regs->error;
   int present = error_code & 0x1;
   int write = error_code & 0x2;
   int user = error_code & 0x4;
-  if (!present) {
-    void* page = alloc_physical_page();
-    if (page) {
-      uint32_t flags = PAGE_PRESENT | PAGE_RW;
-      if (user) flags |= PAGE_USER;
-      map_page(page, (void*)fault_addr, flags);
+  if (present) {
+    if (user && current_process) {
+      current_process->state = proc_state::Zombie;
+      yield();
       return;
     }
+    panic("Page Fault Protection Violation");  // TODO sys_exit if user;
+  }
+  if (!user) panic("Kernel page fault");  // TODO: maybe someday will go away
+  void* page = alloc_physical_page();
+  if (!page) {
     if (user)
       handle_user_oom(fault_addr, regs);
     else
       handle_kernel_oom(fault_addr, regs);
-  } else {
-    if (!user)
-      panic("Page Fault Protection Violation");  // TODO sys_exit if user;
-    else {
-      current_process->state = proc_state::Zombie;
-      yield();
-    }
   }
+  uint32_t flags = PAGE_PRESENT | PAGE_RW;
+  if (user) flags |= PAGE_USER;
+  map_page(page, (void*)fault_addr, flags);
 }
 
 // Dummy syscall handlers for init process
@@ -69,14 +70,11 @@ static int sys_exit(void) {
 }
 
 static int sys_getpid(void) {
-  if (current_process) {
-    return current_process->pid;
-  }
+  if (current_process) return current_process->pid;
   return -1;
 }
 
 void syscall_handler(Registers* regs) {
-  printf("Wow syscall was called\n");
   int syscall_num = regs->eax;
   int result = -1;
   switch (syscall_num) {

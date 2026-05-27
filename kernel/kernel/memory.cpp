@@ -4,6 +4,10 @@
 #include <kernel/virtual_alloc.h>
 #include <stdint.h>
 
+enum {
+  INIT_PAGES_N = 8,
+};
+
 class memory_allocator {
   uint32_t page_size_bytes;
   struct block {
@@ -18,13 +22,13 @@ class memory_allocator {
 
   void init() {
     auto info = paging_info::info();
-    page_size_bytes = info.page_size_bits / 8;
+    page_size_bytes = info.page_size_bytes;
     free_list = nullptr;
 
-    void* heap = kvalloc_immediate(64);
+    void* heap = kvalloc_immediate(INIT_PAGES_N);
     if (heap) {
       free_list = (block*)heap;
-      free_list->size = 64 * page_size_bytes - sizeof(block);
+      free_list->size = INIT_PAGES_N * page_size_bytes - sizeof(block);
       free_list->free = true;
       free_list->next = nullptr;
     } else

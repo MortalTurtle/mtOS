@@ -10,7 +10,7 @@
 extern "C" void kernel_main(uint32_t multiboot_info_phys) {
   terminal_initialize();
   system_setup(multiboot_info_phys);
-  printf("Wazzaap!!\n");
+  printf("Hello from mtOS!\n");
 
   init_processes();
   userinit();

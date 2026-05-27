@@ -22,9 +22,7 @@ void copy_kernel_mappings(void* pgdir_virt) {
   uint32_t* kernel_pgdir =
       (uint32_t*)0xFFFFF000;  // recursive mapping to current PD
 
-  for (int i = 768; i < 1024; i++) {
-    new_pgdir[i] = kernel_pgdir[i];
-  }
+  for (int i = 768; i < 1024; i++) new_pgdir[i] = kernel_pgdir[i];
   new_pgdir[0] = kernel_pgdir[0];
 
   void* new_pgdir_phys = get_physaddr(pgdir_virt);
@@ -32,8 +30,12 @@ void copy_kernel_mappings(void* pgdir_virt) {
 }
 
 int load_initcode(struct process* p) {
+  switchkvm(p->pgdir);
   void* phys = alloc_physical_page();
-  if (!phys) return -1;
+  if (!phys) {
+    switchkvm(nullptr);
+    return -1;
+  }
 
   map_page(phys, (void*)0x08000000, PAGE_PRESENT | PAGE_RW | PAGE_USER);
   memcpy((void*)0x08000000, _binary_initcode_start,
@@ -41,11 +43,13 @@ int load_initcode(struct process* p) {
   void* stack_phys = alloc_physical_page();
   if (!stack_phys) {
     free_physical_page(phys);
+    switchkvm(nullptr);
     return -1;
   }
   map_page(stack_phys, (void*)0x08001000, PAGE_PRESENT | PAGE_RW | PAGE_USER);
 
   p->sz = 0x08002000;
+  switchkvm(nullptr);
   return 0;
 }
 

@@ -1,6 +1,7 @@
 #include <kernel/paging.h>
 #include <kernel/physical_alloc.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "paging_defs.h"
 
@@ -50,18 +51,18 @@ extern "C" void map_page(void* physaddr, void* virtualaddr,
                          unsigned int flags) {
   // Make sure that both addresses are page-aligned.
   if ((uint32_t)physaddr & 0xFFF || (uint32_t)virtualaddr & 0xFFF) return;
-  unsigned long pdindex = (unsigned long)virtualaddr >> 22;
-  unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+  uint32_t pdindex = (uint32_t)virtualaddr >> 22;
+  uint32_t ptindex = (uint32_t)virtualaddr >> 12 & 0x03FF;
+  bool user = flags & PAGE_USER;
 
   uint32_t* pd = (uint32_t*)0xFFFFF000;
   if (!(pd[pdindex] & PAGE_PRESENT)) {
     // Create new page table (must be allocated and initialized to zero)
     uint32_t* new_pt = (uint32_t*)alloc_physical_page();
     if (!new_pt) return;  // Handle allocation failure
-    pd[pdindex] = (uint32_t)new_pt | PAGE_PRESENT | PAGE_RW | PAGE_USER;
-    uint32_t* pt_virt = (uint32_t*)(0xFFC00000 + (pdindex << 12));
-    flush_tlb_single((uint32_t)pt_virt);
-    for (int i = 0; i < 1024; i++) pt_virt[i] = 0;
+    memset(new_pt, 0, 4096);
+    pd[pdindex] = (uint32_t)new_pt | PAGE_PRESENT | PAGE_RW | user;
+    flush_tlb_single((uint32_t)new_pt);
   }
 
   uint32_t* pt = (uint32_t*)(0xFFC00000 + (pdindex << 12));
@@ -72,8 +73,8 @@ extern "C" void map_page(void* physaddr, void* virtualaddr,
 
 extern "C" void unmap_page(void* virtualaddr) {
   if ((uint32_t)virtualaddr & 0xFFF) return;
-  unsigned long pdindex = (unsigned long)virtualaddr >> 22;
-  unsigned long ptindex = (unsigned long)virtualaddr >> 12 & 0x03FF;
+  uint32_t pdindex = (uint32_t)virtualaddr >> 22;
+  uint32_t ptindex = (uint32_t)virtualaddr >> 12 & 0x03FF;
   uint32_t* pd = (uint32_t*)0xFFFFF000;
 
   if (!(pd[pdindex] & PAGE_PRESENT)) return;

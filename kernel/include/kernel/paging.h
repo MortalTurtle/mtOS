@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 struct paging_info {
-  uint32_t page_size_bits;
+  uint32_t page_size_bytes;
   static paging_info info();
 };
 
