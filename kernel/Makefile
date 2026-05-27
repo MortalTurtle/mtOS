@@ -77,12 +77,10 @@ $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 
 # Special rule for first proc code
 $(ARCHDIR)/initcode.o:
-	$(CC) -m32 -ffreestanding -c $(ARCHDIR)/initcode.S -o $(ARCHDIR)/initcode.tmp.o && \
-	$(LD) -m elf_i386 -N -e start -Ttext 0 -o $(ARCHDIR)/initcode.out $(ARCHDIR)/initcode.tmp.o && \
-	i686-elf-objcopy -S -O binary $(ARCHDIR)/initcode.out initcode && \
-	$(LD) -m elf_i386 -r -b binary -o $@ initcode && \
-	rm -f $(ARCHDIR)/initcode.tmp.o $(ARCHDIR)/initcode.out
-
+	$(CC) $(CFLAGS) -c $(ARCHDIR)/initcode.S -o $(ARCHDIR)/initcode.tmp.o
+	$(CC) $(CFLAGS) $(LDFLAGS) --oformat=binary -o initcode $(ARCHDIR)/initcode.tmp.o
+	$(LD) $(LDFLAGS) -r -b binary -o $@ initcode
+	rm -f $(ARCHDIR)/initcode.tmp.o initcode
 .cpp.o:
 	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 

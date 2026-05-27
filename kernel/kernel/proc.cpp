@@ -65,7 +65,7 @@ void userinit() {
   copy_kernel_mappings(pgdir_virt);
   if (load_initcode(p) < 0) panic("Failed to load initcode");
   setup_process_trapframe(p, INIT_CODE_VIRT_START,
-                          INIT_CODE_VIRT_START + PAGE_SIZE_BYTES * 2);
+                          INIT_CODE_VIRT_START + PAGE_SIZE_BYTES);
   p->state = proc_state::Runnable;
   initproc = p;
 }

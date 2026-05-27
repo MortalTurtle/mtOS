@@ -41,16 +41,8 @@ int load_initcode(struct process* p) {
            PAGE_PRESENT | PAGE_RW | PAGE_USER);
   memcpy((void*)(INIT_CODE_VIRT_START), _binary_initcode_start,
          (size_t)&_binary_initcode_size);
-  void* stack_phys = alloc_physical_page();
-  if (!stack_phys) {
-    free_physical_page(phys);
-    switchkvm(nullptr);
-    return -1;
-  }
-  map_page(stack_phys, (void*)(INIT_CODE_VIRT_START + PAGE_SIZE_BYTES),
-           PAGE_PRESENT | PAGE_RW | PAGE_USER);
 
-  p->sz = PAGE_SIZE_BYTES * 2;
+  p->sz = PAGE_SIZE_BYTES;
   switchkvm(nullptr);
   return 0;
 }
