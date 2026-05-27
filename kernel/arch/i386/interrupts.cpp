@@ -75,9 +75,9 @@ static int sys_getpid(void) {
 }
 
 void syscall_handler(trapframe* regs) {
-  printf("interrupt=%u eip=0x%x cs=0x%x cpl=%u\n", regs->trapno, regs->eip,
-         regs->cs, regs->cs & 3);
   int syscall_num = regs->eax;
+  printf("interrupt=%u syscall_num=%u cs=0x%x cpl=%u\n", regs->trapno,
+         syscall_num, regs->cs, regs->cs & 3);
   int result = -1;
   switch (syscall_num) {
     case 1:  // SYS_exec

@@ -14,6 +14,10 @@ enum class proc_state {
 #define KERNEL_STACK_SIZE 4096
 #define MAX_PROC_AMOUNT 64
 
+enum {
+  INIT_CODE_VIRT_START = 0x08000000,
+};
+
 struct process {
   uint32_t pid;
   proc_state state;

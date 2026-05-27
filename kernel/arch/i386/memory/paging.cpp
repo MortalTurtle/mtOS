@@ -53,7 +53,7 @@ extern "C" void map_page(void* physaddr, void* virtualaddr,
   if ((uint32_t)physaddr & 0xFFF || (uint32_t)virtualaddr & 0xFFF) return;
   uint32_t pdindex = (uint32_t)virtualaddr >> 22;
   uint32_t ptindex = (uint32_t)virtualaddr >> 12 & 0x03FF;
-  bool user = flags & PAGE_USER;
+  uint32_t user = flags & PAGE_USER;
 
   uint32_t* pd = (uint32_t*)0xFFFFF000;
   if (!(pd[pdindex] & PAGE_PRESENT)) {

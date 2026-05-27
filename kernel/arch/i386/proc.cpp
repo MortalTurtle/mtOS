@@ -37,8 +37,9 @@ int load_initcode(struct process* p) {
     return -1;
   }
 
-  map_page(phys, (void*)0x08000000, PAGE_PRESENT | PAGE_RW | PAGE_USER);
-  memcpy((void*)0x08000000, _binary_initcode_start,
+  map_page(phys, (void*)INIT_CODE_VIRT_START,
+           PAGE_PRESENT | PAGE_RW | PAGE_USER);
+  memcpy((void*)(INIT_CODE_VIRT_START), _binary_initcode_start,
          (size_t)&_binary_initcode_size);
   void* stack_phys = alloc_physical_page();
   if (!stack_phys) {
@@ -46,9 +47,10 @@ int load_initcode(struct process* p) {
     switchkvm(nullptr);
     return -1;
   }
-  map_page(stack_phys, (void*)0x08001000, PAGE_PRESENT | PAGE_RW | PAGE_USER);
+  map_page(stack_phys, (void*)(INIT_CODE_VIRT_START + PAGE_SIZE_BYTES),
+           PAGE_PRESENT | PAGE_RW | PAGE_USER);
 
-  p->sz = 0x08002000;
+  p->sz = PAGE_SIZE_BYTES * 2;
   switchkvm(nullptr);
   return 0;
 }

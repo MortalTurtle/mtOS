@@ -1,6 +1,10 @@
 #pragma once
 #include <stdint.h>
 
+#ifdef i386
+#define PAGE_SIZE_BYTES 4096
+#endif
+
 struct paging_info {
   uint32_t page_size_bytes;
   static paging_info info();

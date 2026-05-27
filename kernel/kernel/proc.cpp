@@ -64,7 +64,8 @@ void userinit() {
   memset(pgdir_virt, 0, paging_info::info().page_size_bytes);
   copy_kernel_mappings(pgdir_virt);
   if (load_initcode(p) < 0) panic("Failed to load initcode");
-  setup_process_trapframe(p, 0x08000000, 0x08002000);
+  setup_process_trapframe(p, INIT_CODE_VIRT_START,
+                          INIT_CODE_VIRT_START + PAGE_SIZE_BYTES * 2);
   p->state = proc_state::Runnable;
   initproc = p;
 }
