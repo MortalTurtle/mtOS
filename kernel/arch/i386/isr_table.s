@@ -141,6 +141,7 @@ isr_stub_no_error 124
 isr_stub_no_error 125
 isr_stub_no_error 126
 isr_stub_no_error 127
+isr_stub_no_error 128
 
 isr_common_handler:
     pusha
@@ -202,3 +203,4 @@ isr_table:
     .long isr_stub_116, isr_stub_117, isr_stub_118, isr_stub_119
     .long isr_stub_120, isr_stub_121, isr_stub_122, isr_stub_123
     .long isr_stub_124, isr_stub_125, isr_stub_126, isr_stub_127
+    .long isr_stub_128

@@ -75,6 +75,8 @@ static int sys_getpid(void) {
 }
 
 void syscall_handler(Registers* regs) {
+  printf("interrupt=%u eip=0x%x cs=0x%x cpl=%u\n", regs->interrupt, regs->eip,
+         regs->cs, regs->cs & 3);
   int syscall_num = regs->eax;
   int result = -1;
   switch (syscall_num) {

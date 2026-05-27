@@ -2,7 +2,7 @@
 
 #include "idt.h"
 
-#define IDT_MAX_DESCRIPTORS 128
+#define IDT_MAX_DESCRIPTORS 129
 
 extern "C" void* isr_table[];
 
