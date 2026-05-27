@@ -67,7 +67,6 @@ void setup_process_trapframe(struct process* p, uint32_t entry,
   tf->eflags = 0x202;
   tf->eip = entry;
   tf->esp = stack_top;
-  tf->user_esp = stack_top;
 
   set_tss_esp0((uint32_t)p->kstack + KERNEL_STACK_SIZE);
 }

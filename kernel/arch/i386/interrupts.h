@@ -1,13 +1,7 @@
 #pragma once
+#include <kernel/proc_arch.h>
 #include <stdint.h>
 
-struct Registers {
-  uint32_t ds;
-  uint32_t edi, esi, ebp, kern_esp, ebx, edx, ecx, eax;
-  uint32_t interrupt, error;
-  uint32_t eip, cs, eflags, esp, ss;
-} __attribute__((packed));
+void handle_page_fault(trapframe* regs);
 
-void handle_page_fault(Registers* regs);
-
-void syscall_handler(Registers* regs);
+void syscall_handler(trapframe* regs);

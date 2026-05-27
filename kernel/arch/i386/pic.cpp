@@ -1,9 +1,10 @@
-#include "pic.h"
 #include <stdint.h>
+
 #include "inline_asm.h"
 #include "interrupts.h"
 #include "isr.h"
 #include "kernel/keyboard.h"
+#include "pic.h"
 #include "stdio.h"
 
 #define PIC1 0x20
@@ -105,16 +106,16 @@ uint16_t PIC_read_isr_reg() {
 
 #define PIC_REMAP_OFFSET 0x20
 
-void irq_stub_handler(Registers* regs) {
-  printf("Irq interrupt %d", (regs->interrupt - PIC_REMAP_OFFSET));
-  PIC_sendEOI(regs->interrupt - PIC_REMAP_OFFSET);
+void irq_stub_handler(trapframe* regs) {
+  printf("Irq interrupt %d", (regs->trapno - PIC_REMAP_OFFSET));
+  PIC_sendEOI(regs->trapno - PIC_REMAP_OFFSET);
 }
 
-void irq0_timer_handler(Registers* regs) {
-  PIC_sendEOI(regs->interrupt - PIC_REMAP_OFFSET);
+void irq0_timer_handler(trapframe* regs) {
+  PIC_sendEOI(regs->trapno - PIC_REMAP_OFFSET);
 }
 
-void irq1_keyboard_handler(Registers* regs) {
+void irq1_keyboard_handler(trapframe* regs) {
   uint8_t scancode = inb(0x60);
   if (!(scancode & 0x80)) {  // proccess only presses
     char c = scancode_to_ascii(scancode);
@@ -123,7 +124,7 @@ void irq1_keyboard_handler(Registers* regs) {
       putchar(c);
     }
   }
-  PIC_sendEOI(regs->interrupt - PIC_REMAP_OFFSET);
+  PIC_sendEOI(regs->trapno - PIC_REMAP_OFFSET);
 }
 
 extern "C" void PIC_configure() {

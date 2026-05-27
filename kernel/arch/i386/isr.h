@@ -7,7 +7,7 @@
 #include "kernel/proc.h"
 
 struct ISRTable {
-  using isr = void (*)(Registers*);
+  using isr = void (*)(trapframe*);
   isr isr_table[256];
   bool valid[256] = {0};
   static ISRTable instance;
@@ -15,7 +15,7 @@ struct ISRTable {
     isr_table[cnt] = isr;
     valid[cnt++] = true;
   }
-  void call(int interrupt, Registers* regs) {
+  void call(int interrupt, trapframe* regs) {
     if (valid[interrupt])
       isr_table[interrupt](regs);
     else {

@@ -7,7 +7,7 @@
 #include "interrupts.h"
 #include "memory/paging_defs.h"
 
-void handle_user_oom(uint32_t fault_addr, Registers* regs) {
+void handle_user_oom(uint32_t fault_addr, trapframe* regs) {
   void* phys = alloc_physical_page();
   if (phys)
     map_page(phys, (void*)fault_addr, PAGE_PRESENT | PAGE_RW | PAGE_USER);
@@ -15,7 +15,7 @@ void handle_user_oom(uint32_t fault_addr, Registers* regs) {
     panic("User OOM");
 }
 
-void handle_kernel_oom(uint32_t fault_addr, Registers* regs) {
+void handle_kernel_oom(uint32_t fault_addr, trapframe* regs) {
   void* phys = alloc_physical_page();
   if (phys)
     map_page(phys, (void*)fault_addr, PAGE_PRESENT | PAGE_RW);
@@ -23,13 +23,13 @@ void handle_kernel_oom(uint32_t fault_addr, Registers* regs) {
     panic("Kernel OOM");
 }
 
-void handle_page_fault(Registers* regs) {
+void handle_page_fault(trapframe* regs) {
   uint32_t fault_addr;
   asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
   uint32_t page_addr = fault_addr & ~0xFFF;  // align
 
-  uint32_t error_code = regs->error;
+  uint32_t error_code = regs->err;
   int present = error_code & 0x1;
   int write = error_code & 0x2;
   int user = error_code & 0x4;
@@ -74,8 +74,8 @@ static int sys_getpid(void) {
   return -1;
 }
 
-void syscall_handler(Registers* regs) {
-  printf("interrupt=%u eip=0x%x cs=0x%x cpl=%u\n", regs->interrupt, regs->eip,
+void syscall_handler(trapframe* regs) {
+  printf("interrupt=%u eip=0x%x cs=0x%x cpl=%u\n", regs->trapno, regs->eip,
          regs->cs, regs->cs & 3);
   int syscall_num = regs->eax;
   int result = -1;

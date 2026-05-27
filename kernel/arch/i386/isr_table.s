@@ -143,30 +143,41 @@ isr_stub_no_error 126
 isr_stub_no_error 127
 isr_stub_no_error 128
 
+.global isr_common_handler
+
 isr_common_handler:
+    # segment registers
+    pushl %ds
+    pushl %es
+    pushl %fs
+    pushl %gs
+
+    # general registers
     pusha
 
-    xor %eax, %eax
-    mov %ds, %ax
-    push %eax
-
+    # switch to kernel segments
     mov $0x10, %ax
     mov %ax, %ds
     mov %ax, %es
     mov %ax, %fs
     mov %ax, %gs
 
-    push %esp
+    # pass trapframe*
+    pushl %esp
     call exception_handler
-    add $4, %esp            # pop num of interrupt and error code from stack
+    addl $4, %esp
 
-    pop %eax
-    mov %ax, %ds
-    mov %ax, %es
-    mov %ax, %fs
-    mov %ax, %gs
+    # restore registers
     popa
-    add $8, %esp
+
+    popl %gs
+    popl %fs
+    popl %es
+    popl %ds
+
+    # remove trapno + err
+    addl $8, %esp
+
     iret
 
 .global isr_table
