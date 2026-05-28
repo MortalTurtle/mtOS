@@ -27,6 +27,7 @@ export ISONAME := $(OSNAME).iso
 export AR := $(HOST)-ar
 export AS := $(HOST)-as
 export CC := $(HOST)-g++
+export LD:= $(HOST)-ld
 
 export PREFIX := /usr
 export EXEC_PREFIX := $(PREFIX)
